@@ -12,7 +12,7 @@ from fastapi import (
     status,
 )
 
-from app.dependencies.auth import CurrentActiveUser
+from app.dependencies.auth import  CurrentActiveUser
 from app.dependencies.uow import UnitOfWorkDep
 from app.models.user import User
 from app.schemas.repository import (
@@ -47,31 +47,6 @@ def import_github_repository(
     )
 
 
-@router.post(
-    "/import/upload",
-    response_model=RepositoryResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def upload_repository(
-    project_id: UUID = Form(...),
-    name: str = Form(...),
-    file: UploadFile = File(...),
-    *, # error is not raised even if you use non default params
-    current_user: CurrentActiveUser,
-    uow:UnitOfWorkDep
-) -> RepositoryResponse:
-
-    request = UploadRepositoryCreate(
-        project_id=project_id,
-        name=name,
-    )
-
-    # File processing will be added in Sprint 2
-
-    return service.create_uploaded_repository(
-        user_id=current_user.id,
-        data=request,
-    )
 
 
 @router.post(

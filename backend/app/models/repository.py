@@ -39,9 +39,9 @@ class Repository(BaseModel):
         nullable=False,
     )
 
-    url: Mapped[str] = mapped_column(
+    url: Mapped[str | None] = mapped_column(
         Text,
-        nullable=False,
+        nullable=True,
     )
 
     default_branch: Mapped[str] = mapped_column(

@@ -5,7 +5,7 @@ from uuid import UUID
 from app.models.project import Project
 from app.schemas.project import ProjectCreate, ProjectUpdate
 from app.dependencies.uow import UnitOfWorkDep
-from app.core.exceptions import WorkspaceNotFound, ProjectAlreadyExists
+from app.core.exceptions import WorkspaceNotFound, ProjectAlreadyExists, ProjectNotFound
 
 
 class ProjectService:
@@ -62,7 +62,7 @@ class ProjectService:
         )
 
         if project is None:
-            raise ValueError("Project not found.")
+            raise ProjectNotFound("Project not found.")
 
         return project
 

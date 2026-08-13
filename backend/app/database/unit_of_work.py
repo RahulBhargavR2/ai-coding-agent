@@ -9,6 +9,7 @@ from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.workspace_repository import WorkspaceRepository
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.repository_repository import RepositoryRepository
+from app.repositories.repository_file_repository import RepositoryFileRepository
 
 
 
@@ -46,6 +47,10 @@ class UnitOfWork:
     @cached_property
     def repositories(self) -> RepositoryRepository:
         return RepositoryRepository(self._db)
+    
+    @cached_property
+    def repository_files(self) -> RepositoryFileRepository:
+        return RepositoryFileRepository(self._db)
 
     # ------------------------------------------------------------------
     # Transaction Management

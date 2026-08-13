@@ -5,18 +5,23 @@ from fastapi.responses import JSONResponse
 
 from app.core.exceptions import (
     AppException,
-    BusinessValidationError,
+    InvalidCredentials,
     EmailAlreadyExists,
+    InvalidToken,
     ExpiredToken,
     InactiveUser,
-    InvalidCredentials,
-    InvalidToken,
-    LLMError,
-    PermissionDenied,
-    RepositoryNotFound,
     UserNotFound,
+    PermissionDenied,
     WorkspaceNotFound,
-    WorkspaceAlreadyExists
+    WorkspaceAlreadyExists,
+    ProjectNotFound,
+    ProjectAlreadyExists,
+    RepositoryNotFound,
+    RepositoryAlreadyExists,
+    RepositoryFileNotFound,
+    RepositoryFileAlreadyExists,
+    BusinessValidationError,
+    LLMError
 )
 
 
@@ -31,6 +36,17 @@ def exception_response(
         },
     )
 
+    @app.exception_handler(AppException)
+    async def app_exception_handler(
+        request: Request,
+        exc: AppException,
+    ):
+        return exception_response(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            exc.message,
+        )
+
+
 
 def register_exception_handlers(app: FastAPI) -> None:
     """Register application exception handlers."""
@@ -42,6 +58,16 @@ def register_exception_handlers(app: FastAPI) -> None:
     ):
         return exception_response(
             status.HTTP_401_UNAUTHORIZED,
+            exc.message,
+        )
+
+    @app.exception_handler(EmailAlreadyExists)
+    async def email_exists_handler(
+        request: Request,
+        exc: EmailAlreadyExists,
+    ):
+        return exception_response(
+            status.HTTP_409_CONFLICT,
             exc.message,
         )
 
@@ -75,16 +101,6 @@ def register_exception_handlers(app: FastAPI) -> None:
             exc.message,
         )
 
-    @app.exception_handler(PermissionDenied)
-    async def permission_handler(
-        request: Request,
-        exc: PermissionDenied,
-    ):
-        return exception_response(
-            status.HTTP_403_FORBIDDEN,
-            exc.message,
-        )
-
     @app.exception_handler(UserNotFound)
     async def user_not_found_handler(
         request: Request,
@@ -95,13 +111,13 @@ def register_exception_handlers(app: FastAPI) -> None:
             exc.message,
         )
 
-    @app.exception_handler(RepositoryNotFound)
-    async def repository_not_found_handler(
+    @app.exception_handler(PermissionDenied)
+    async def permission_handler(
         request: Request,
-        exc: RepositoryNotFound,
+        exc: PermissionDenied,
     ):
         return exception_response(
-            status.HTTP_404_NOT_FOUND,
+            status.HTTP_403_FORBIDDEN,
             exc.message,
         )
 
@@ -114,7 +130,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             status.HTTP_404_NOT_FOUND,
             exc.message,
         )
-    
+
     @app.exception_handler(WorkspaceAlreadyExists)
     async def workspace_already_exists_handler(
         request:Request,
@@ -124,16 +140,70 @@ def register_exception_handlers(app: FastAPI) -> None:
             status.HTTP_409_CONFLICT,
             exc.message
         )
-
-    @app.exception_handler(EmailAlreadyExists)
-    async def email_exists_handler(
+    
+    @app.exception_handler(ProjectNotFound)
+    async def workspace_not_found_handler(
         request: Request,
-        exc: EmailAlreadyExists,
+        exc: ProjectNotFound,
+    ):
+        return exception_response(
+            status.HTTP_404_NOT_FOUND,
+            exc.message,
+        )
+
+    @app.exception_handler(ProjectAlreadyExists)
+    async def workspace_already_exists_handler(
+        request:Request,
+        exc:ProjectAlreadyExists,
     ):
         return exception_response(
             status.HTTP_409_CONFLICT,
+            exc.message
+        )
+    
+    
+
+    @app.exception_handler(RepositoryNotFound)
+    async def repository_not_found_handler(
+        request: Request,
+        exc: RepositoryNotFound,
+    ):
+        return exception_response(
+            status.HTTP_404_NOT_FOUND,
             exc.message,
         )
+    
+    @app.exception_handler(RepositoryAlreadyExists)
+    async def workspace_already_exists_handler(
+        request:Request,
+        exc:RepositoryAlreadyExists,
+    ):
+        return exception_response(
+            status.HTTP_409_CONFLICT,
+            exc.message
+        )
+    
+    @app.exception_handler(RepositoryFileNotFound)
+    async def repository_not_found_handler(
+        request: Request,
+        exc: RepositoryFileNotFound,
+    ):
+        return exception_response(
+            status.HTTP_404_NOT_FOUND,
+            exc.message,
+        )
+    
+    @app.exception_handler(RepositoryFileAlreadyExists)
+    async def workspace_already_exists_handler(
+        request:Request,
+        exc:RepositoryFileAlreadyExists,
+    ):
+        return exception_response(
+            status.HTTP_409_CONFLICT,
+            exc.message
+        )
+    
+    
 
     @app.exception_handler(BusinessValidationError)
     async def validation_handler(
@@ -152,15 +222,5 @@ def register_exception_handlers(app: FastAPI) -> None:
     ):
         return exception_response(
             status.HTTP_503_SERVICE_UNAVAILABLE,
-            exc.message,
-        )
-
-    @app.exception_handler(AppException)
-    async def app_exception_handler(
-        request: Request,
-        exc: AppException,
-    ):
-        return exception_response(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
             exc.message,
         )

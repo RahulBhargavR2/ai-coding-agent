@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 class AppException(Exception):
     """Base application exception."""
 
@@ -47,6 +48,35 @@ class PermissionDenied(AppException):
 
 
 # ============================================================================
+# Workspace
+# ============================================================================
+
+
+class WorkspaceNotFound(AppException):
+    """Raised when a workspace cannot be found."""
+
+
+class WorkspaceAlreadyExists(AppException):
+    """Raised when attempting to create a workspace that already exists."""
+
+
+# ============================================================================
+# Project
+# ============================================================================
+
+
+class ProjectNotFound(AppException):
+    """Raised when a project cannot be found."""
+
+
+class ProjectAlreadyExists(AppException):
+    """
+    Raised when attempting to create a project with the same
+    name inside a workspace.
+    """
+
+
+# ============================================================================
 # Repository
 # ============================================================================
 
@@ -55,17 +85,21 @@ class RepositoryNotFound(AppException):
     """Raised when a repository cannot be found."""
 
 
-class WorkspaceNotFound(AppException):
-    """Raised when a workspace cannot be found."""
+class RepositoryAlreadyExists(AppException):
+    """Raised when attempting to create a duplicate repository."""
 
 
-class WorkspaceAlreadyExists(AppException):
-    """Raised when a workspace cannot be found."""
+# ============================================================================
+# Repository File
+# ============================================================================
 
 
+class RepositoryFileNotFound(AppException):
+    """Raised when a repository file cannot be found."""
 
-class ProjectAlreadyExists(AppException):
-    """Raise when attempting to create a Project with same name inside a workspace"""
+
+class RepositoryFileAlreadyExists(AppException):
+    """Raised when a repository file already exists."""
 
 
 # ============================================================================

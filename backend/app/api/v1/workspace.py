@@ -1,6 +1,6 @@
 
 from fastapi import APIRouter, status
-
+from uuid import UUID
 from app.schemas.workspace import (
     WorkspaceCreate,
     WorkspaceResponse,
@@ -65,7 +65,7 @@ def get_workspace(
     response_model=WorkspaceListResponse,
 )
 def list_workspaces(
-    current_user: CurrentUser,
+    current_user: CurrentActiveUser,
     uow: UnitOfWorkDep,
 ) -> WorkspaceListResponse:
 

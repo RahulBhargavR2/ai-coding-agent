@@ -132,6 +132,6 @@ class WorkspaceService:
         )
 
         if workspace is None:
-            raise WorkspaceNotFound(workspace_id)
+            raise WorkspaceNotFound(str(workspace_id))
 
         return workspace

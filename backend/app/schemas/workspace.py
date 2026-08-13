@@ -3,7 +3,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 from datetime import datetime
-import uuid
+from uuid import UUID
 
 class WorkspaceBase(BaseModel):
     name: str = Field(
@@ -38,6 +38,8 @@ class WorkspaceUpdate(BaseModel):
 
 class WorkspaceResponse(WorkspaceBase):
     id: UUID
+
+    user_id: UUID
 
     is_default: bool
 

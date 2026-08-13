@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Response
 
 from app.models.user import User
 
@@ -36,13 +36,13 @@ def create_project(
 
     service = ProjectService(uow)
 
-    project = service.create(
+    project = service.create_project(
         user_id=current_user.id,
         workspace_id=workspace_id,
         data=request
     )
 
-    return ProjectCreate.model_validate(project)
+    return ProjectResponse.model_validate(project)
 
 
 @router.get(
@@ -67,7 +67,7 @@ def get_project(
 
 @router.get(
     "/workspace/{workspace_id}",
-    response_model=list[ProjectResponse],
+    response_model=ProjectListResponse,
 )
 def list_projects(
     workspace_id: UUID,
@@ -81,7 +81,13 @@ def list_projects(
         user_id=current_user.id,
     )
 
-    return ProjectListResponse.model_validate(projects)
+    return ProjectListResponse(
+        items=[
+            ProjectResponse.model_validate(project)
+            for project in projects
+        ],
+        total=len(projects)
+    )
 
 
 @router.patch(
@@ -91,7 +97,8 @@ def list_projects(
 def update_project(
     project_id: UUID,
     request: ProjectUpdate,
-    current_user: CurrentActiveUser
+    current_user: CurrentActiveUser,
+    uow:UnitOfWorkDep
 ) -> ProjectResponse:
 
     service = ProjectService(uow)
@@ -102,7 +109,7 @@ def update_project(
         data=request,
     )
 
-    return ProjectUpdate.model_validate(project)
+    return ProjectResponse.model_validate(project)
 
 
 @router.delete(
@@ -111,7 +118,8 @@ def update_project(
 )
 def delete_project(
     project_id: UUID,
-    current_user: CurrentActiveUser
+    current_user: CurrentActiveUser,
+    uow:UnitOfWorkDep
 ):
     service = ProjectService(uow)
     service.delete_project(

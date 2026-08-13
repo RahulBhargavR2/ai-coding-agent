@@ -16,13 +16,14 @@ class RepositoryProvider(str, Enum):
     GITLAB = "gitlab"
     BITBUCKET = "bitbucket"
     LOCAL = "local"
-    ZIP = "zip"
+    UPLOAD = "upload"
 
 
 class RepositoryStatus(str, Enum):
     PENDING = "pending"
     CLONING = "cloning"
     INDEXING = "indexing"
+    INDEXED = "indexed"
     READY = "ready"
     FAILED = "failed"
 
