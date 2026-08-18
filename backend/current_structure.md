@@ -103,15 +103,41 @@ ai-coding-agent/
 │   │   ├── evaluation/
 │   │   └── guardrails/
 │   │
+│   │ 
 │   ├── indexing/
+│   │   │
+│   │   ├── importers/
+│   │   │   ├── github_importer.py
+│   │   │   ├── zip_importer.py
+│   │   │   └── local_importer.py
+│   │   │
+│   │   ├── scanner/
+│   │   │   ├── file_scanner.py
+│   │   │   ├── language_detector.py
+│   │   │   └── ignore_rules.py
+│   │   │
 │   │   ├── parser/
+│   │   │   ├── tree_sitter_parser.py
+│   │   │   ├── metadata_extractor.py
+│   │   │   └── ast_utils.py
+│   │   │
 │   │   ├── chunking/
+│   │   │   ├── chunker.py
+│   │   │   ├── code_chunker.py
+│   │   │   └── markdown_chunker.py
+│   │   │
 │   │   ├── embeddings/
+│   │   │   ├── embedding_service.py
+│   │   │   └── models.py
+│   │   │
 │   │   ├── vectorstore/
+│   │   │   ├── qdrant_service.py
+│   │   │   └── collections.py
+│   │   │
 │   │   ├── bm25/
-│   │   ├── reranker/
-│   │   ├── metadata/
-│   │   └── ast/
+│   │   │   └── bm25_service.py
+│   │   │
+│   │   └── pipeline.py
 │   │
 │   ├── tools/
 │   │   ├── filesystem/
