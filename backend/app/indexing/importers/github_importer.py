@@ -130,7 +130,7 @@ class GitHubImporter:
         between repositories with the same name across different projects.
         """
 
-        destination = self.storage_root / str(repository.id)
+        destination = self.storage_root / str(repository.id)    
 
         destination.parent.mkdir(
             parents=True,

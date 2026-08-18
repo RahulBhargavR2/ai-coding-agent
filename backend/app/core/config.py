@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_ORIGINS: list[str] = []
 
+    # Storage path
+    REPOSITORY_STORAGE_PATH: str
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
         extra="ignore",

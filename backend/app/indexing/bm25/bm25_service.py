@@ -185,6 +185,27 @@ class BM25Service:
         ]
 
         self.build(remaining_documents)
+    
+    def delete_file(
+    self,
+    repository_file_id: UUID,
+    ) -> None:
+        """
+        Remove all BM25 documents belonging to a repository file.
+        """
+
+        file_id = str(repository_file_id)
+
+        remaining_documents = [
+            document
+            for document in self._documents
+            if document.payload.get("repository_file_id")
+            != file_id
+        ]
+
+        self.build(
+            remaining_documents
+        )
 
     # ------------------------------------------------------------------
     # State

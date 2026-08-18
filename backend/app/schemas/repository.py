@@ -111,3 +111,11 @@ class RepositoryResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class RepositoryIndexResponse(BaseModel):
+    repository_id: UUID
+    files_discovered: int
+    files_indexed: int
+    chunks_created: int
+    embeddings_created: int

@@ -14,13 +14,16 @@ from fastapi import (
 
 from app.dependencies.auth import  CurrentActiveUser
 from app.dependencies.uow import UnitOfWorkDep
+from app.dependencies.indexing import RepositoryIndexingServiceDep
 from app.models.user import User
 from app.schemas.repository import (
     GithubRepositoryCreate,
     RepositoryResponse,
     UploadRepositoryCreate,
+    RepositoryIndexResponse,
 )
 from app.services.workspace.repository_service import RepositoryService
+from app.services.workspace.repository_indexing_service import RepositoryIndexingService
 
 router = APIRouter(
     prefix="/repositories",
@@ -45,8 +48,6 @@ def import_github_repository(
         user_id=current_user.id,
         data=request,
     )
-
-
 
 
 @router.post(
@@ -134,4 +135,51 @@ def delete_repository(
 
     return Response(
         status_code=status.HTTP_204_NO_CONTENT,
+    )
+
+
+@router.post(
+    "/{repository_id}/index",
+)
+def index_repository(
+    repository_id: UUID,
+    current_user: CurrentActiveUser,
+    uow: UnitOfWorkDep,
+) -> IndexingResult:
+    service = RepositoryIndexingService(
+        uow=uow,
+        pipeline=get_indexing_pipeline(uow),
+    )
+
+    return service.index_repository(
+        repository_id=repository_id,
+        user_id=current_user.id,
+    )
+
+
+@router.post(
+    "/{repository_id}/index",
+    response_model=RepositoryIndexResponse,
+    status_code=status.HTTP_200_OK,
+)
+def index_repository(
+    repository_id: UUID,
+    current_user: CurrentActiveUser,
+    indexing_service: RepositoryIndexingServiceDep 
+) -> RepositoryIndexResponse:
+    """
+    Import and incrementally index a GitHub repository.
+    """
+
+    result = indexing_service.index_repository(
+        repository_id=repository_id,
+        user_id=current_user.id,
+    )
+
+    return RepositoryIndexResponse(
+        repository_id=result.repository_id,
+        files_discovered=result.files_discovered,
+        files_indexed=result.files_indexed,
+        chunks_created=result.chunks_created,
+        embeddings_created=result.embeddings_created,
     )

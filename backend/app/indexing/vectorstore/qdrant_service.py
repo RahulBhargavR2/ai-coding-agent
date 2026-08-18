@@ -230,6 +230,33 @@ class QdrantService:
                 points=[self._normalize_point_id(point_id) for point_id in point_ids]
             ),
         )
+    
+    def delete_file(
+    self,
+    repository_file_id: UUID,
+    ) -> None:
+        """
+        Delete all vectors belonging to a repository file.
+        """
+
+        if not self.collection_exists():
+            return
+
+        self.client.delete(
+            collection_name=self.collection.name,
+            points_selector=models.FilterSelector(
+                filter=models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="repository_file_id",
+                            match=models.MatchValue(
+                                value=str(repository_file_id),
+                            ),
+                        ),
+                    ],
+                ),
+            ),
+        )
 
     # ------------------------------------------------------------------
     # Helpers

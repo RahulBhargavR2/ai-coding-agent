@@ -163,3 +163,36 @@ class RepositoryFileRepository(BaseRepository[RepositoryFile]):
         Delete a repository file.
         """
         super().delete(repository_file)
+
+
+    def get_by_path(
+        self,
+        repository_id: UUID,
+        relative_path: str,
+    ) -> RepositoryFile | None:
+        """
+        Retrieve a repository file by its relative path.
+        """
+
+        stmt = select(self.model).where(
+            self.model.repository_id == repository_id,
+            self.model.relative_path == relative_path,
+        )
+
+        return self._first(stmt)
+
+    
+    def delete_by_repository(
+    self,
+    repository_id: UUID,
+    ) -> None:
+        """
+        Delete all files belonging to a repository.
+        """
+
+        files = self.list_by_repository(
+            repository_id=repository_id,
+        )
+
+        for repository_file in files:
+            super().delete(repository_file)

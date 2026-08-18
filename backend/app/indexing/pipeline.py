@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum
 from dataclasses import dataclass
 from pathlib import Path
 from uuid import UUID
@@ -39,6 +40,28 @@ class IndexingResult:
     files_indexed: int
     chunks_created: int
     embeddings_created: int
+
+
+class FileChangeType(str, Enum):
+    """
+    Describes how a filesystem file differs from its indexed state.
+    """
+
+    NEW = "new"
+    UNCHANGED = "unchanged"
+    MODIFIED = "modified"
+    DELETED = "deleted"
+
+
+@dataclass(frozen=True)
+class FileChange:
+    """
+    Represents a detected change to a repository file.
+    """
+
+    change_type: FileChangeType
+    current: RepositoryFile | None
+    previous: RepositoryFile | None
 
 
 class IndexingPipeline:
@@ -140,15 +163,25 @@ class IndexingPipeline:
 
             self.uow.commit()
 
-            repository_files = self._scan_repository(repository)
+            scanned_files = self._scan_repository(
+                repository
+            )
 
-            self._persist_repository_files(repository_files)
+            changes = self._detect_changes(
+                repository=repository,
+                scanned_files=scanned_files,
+            )
+
+            self._apply_file_changes(
+                repository=repository,
+                changes=changes,
+            )
 
             self.uow.commit()
 
-            result = self._index_files(
+            result = self._index_changes(
                 repository=repository,
-                repository_files=repository_files,
+                changes=changes,
             )
 
             self._mark_repository_ready(repository)
@@ -244,92 +277,148 @@ class IndexingPipeline:
     # File indexing
     # ==================================================================
 
-    def _index_files(
+    def _index_changes(
         self,
         repository: Repository,
-        repository_files: list[RepositoryFile],
+        changes: list[FileChange],
     ) -> IndexingResult:
         """
-        Parse, chunk, embed and index repository files.
+        Index only files that are new or modified.
         """
+
+        files_to_index = [
+            change
+            for change in changes
+            if change.change_type
+            in {
+                FileChangeType.NEW,
+                FileChangeType.MODIFIED,
+            }
+        ]
 
         chunks_created = 0
         embeddings_created = 0
         files_indexed = 0
 
-        bm25_documents: list[BM25Document] = []
         vector_points: list[VectorPoint] = []
+        bm25_documents: list[BM25Document] = []
 
-        for repository_file in repository_files:
-            try:
-                chunks = self._process_file(
-                    repository=repository,
-                    repository_file=repository_file,
-                )
+        # --------------------------------------------------------------
+        # Remove stale index data first
+        # --------------------------------------------------------------
 
-                if not chunks:
+        for change in changes:
+            if change.change_type == FileChangeType.MODIFIED:
+                if change.previous is None:
                     continue
 
-                embeddings = self.embedding_service.embed(chunks)
+                self._remove_file_from_indexes(
+                    change.previous
+                )
 
-                if len(embeddings) != len(chunks):
-                    raise BusinessValidationError(
-                        "Embedding count does not match chunk count."
-                    )
+            elif change.change_type == FileChangeType.DELETED:
+                if change.previous is None:
+                    continue
 
-                for index, (chunk, embedding) in enumerate(
-                    zip(
-                        chunks,
-                        embeddings,
-                        strict=True,
-                    )
-                ):
-                    point_id = self._build_point_id(
-                        repository_file=repository_file,
-                        chunk_index=index,
-                    )
+                self._remove_file_from_indexes(
+                    change.previous
+                )
 
-                    payload = self._build_payload(
-                        repository=repository,
-                        repository_file=repository_file,
-                        chunk=chunk,
-                    )
+        # --------------------------------------------------------------
+        # Index new/modified files
+        # --------------------------------------------------------------
 
-                    vector_points.append(
-                        VectorPoint(
-                            id=point_id,
-                            embedding=embedding,
-                            payload=payload,
-                        )
-                    )
+        for change in files_to_index:
+            if change.current is None:
+                continue
 
-                    bm25_documents.append(
-                        BM25Document(
-                            id=point_id,
-                            content=chunk.content,
-                            payload=payload,
-                        )
-                    )
+            chunks = self._process_file(
+                repository=repository,
+                repository_file=change.current,
+            )
 
-                repository_file.is_indexed = True
-
+            if not chunks:
+                change.current.is_indexed = True
                 files_indexed += 1
-                chunks_created += len(chunks)
-                embeddings_created += len(embeddings)
+                continue
 
-            except Exception:
-                repository_file.is_indexed = False
-                raise
+            embeddings = self.embedding_service.embed(
+                chunks
+            )
+
+            if len(embeddings) != len(chunks):
+                raise BusinessValidationError(
+                    "Embedding count does not match chunk count."
+                )
+
+            for index, (chunk, embedding) in enumerate(
+                zip(
+                    chunks,
+                    embeddings,
+                    strict=True,
+                )
+            ):
+                point_id = self._build_point_id(
+                    repository_file=change.current,
+                    chunk_index=index,
+                )
+
+                payload = self._build_payload(
+                    repository=repository,
+                    repository_file=change.current,
+                    chunk=chunk,
+                )
+
+                vector_points.append(
+                    VectorPoint(
+                        id=point_id,
+                        embedding=embedding,
+                        payload=payload,
+                    )
+                )
+
+                bm25_documents.append(
+                    BM25Document(
+                        id=point_id,
+                        content=chunk.content,
+                        payload=payload,
+                    )
+                )
+
+            change.current.is_indexed = True
+
+            files_indexed += 1
+            chunks_created += len(chunks)
+            embeddings_created += len(embeddings)
+
+        # --------------------------------------------------------------
+        # Update vector store
+        # --------------------------------------------------------------
 
         if vector_points:
-            self.qdrant_service.upsert(vector_points)
+            self.qdrant_service.upsert(
+                vector_points
+            )
+
+        # --------------------------------------------------------------
+        # Update BM25
+        # --------------------------------------------------------------
 
         if bm25_documents:
-            self.bm25_service.add(bm25_documents)
+            self.bm25_service.add(
+                bm25_documents
+            )
 
         return IndexingResult(
             repository_id=repository.id,
-            files_discovered=len(repository_files),
+            files_discovered=len(
+                [
+                    change
+                    for change in changes
+                    if change.change_type
+                    != FileChangeType.DELETED
+                ]
+            ),
             files_indexed=files_indexed,
             chunks_created=chunks_created,
             embeddings_created=embeddings_created,
@@ -521,3 +610,183 @@ class IndexingPipeline:
         """
 
         repository.status = RepositoryStatus.FAILED
+    
+
+    def _detect_changes(
+        self,
+        repository: Repository,
+        scanned_files: list[RepositoryFile],
+    ) -> list[FileChange]:
+        """
+        Compare the current filesystem state with the database state.
+        """
+
+        existing_files = self.uow.repository_files.list_by_repository(
+            repository_id=repository.id,
+        )
+
+        existing_by_path = {
+            repository_file.relative_path: repository_file
+            for repository_file in existing_files
+        }
+
+        scanned_by_path = {
+            repository_file.relative_path: repository_file
+            for repository_file in scanned_files
+        }
+
+        changes: list[FileChange] = []
+
+        # --------------------------------------------------------------
+        # New and modified files
+        # --------------------------------------------------------------
+
+        for relative_path, current_file in scanned_by_path.items():
+            previous_file = existing_by_path.get(
+                relative_path
+            )
+
+            if previous_file is None:
+                changes.append(
+                    FileChange(
+                        change_type=FileChangeType.NEW,
+                        current=current_file,
+                        previous=None,
+                    )
+                )
+
+                continue
+
+            if (
+                previous_file.sha256_hash
+                != current_file.sha256_hash
+            ):
+                changes.append(
+                    FileChange(
+                        change_type=FileChangeType.MODIFIED,
+                        current=current_file,
+                        previous=previous_file,
+                    )
+                )
+
+                continue
+
+            changes.append(
+                FileChange(
+                    change_type=FileChangeType.UNCHANGED,
+                    current=previous_file,
+                    previous=previous_file,
+                )
+            )
+
+        # --------------------------------------------------------------
+        # Deleted files
+        # --------------------------------------------------------------
+
+        for relative_path, previous_file in existing_by_path.items():
+            if relative_path not in scanned_by_path:
+                changes.append(
+                    FileChange(
+                        change_type=FileChangeType.DELETED,
+                        current=None,
+                        previous=previous_file,
+                    )
+                )
+
+        return changes
+
+
+    def _apply_file_changes(
+        self,
+        repository: Repository,
+        changes: list[FileChange],
+    ) -> None:
+        """
+        Synchronize RepositoryFile database records with the filesystem.
+        """
+
+        for change in changes:
+
+            # ----------------------------------------------------------
+            # New
+            # ----------------------------------------------------------
+
+            if change.change_type == FileChangeType.NEW:
+                if change.current is None:
+                    continue
+
+                self.uow.repository_files.create(
+                    change.current
+                )
+
+            # ----------------------------------------------------------
+            # Modified
+            # ----------------------------------------------------------
+
+            elif change.change_type == FileChangeType.MODIFIED:
+                if (
+                    change.current is None
+                    or change.previous is None
+                ):
+                    continue
+
+                self._update_repository_file(
+                    existing=change.previous,
+                    current=change.current,
+                )
+
+            # ----------------------------------------------------------
+            # Deleted
+            # ----------------------------------------------------------
+
+            elif change.change_type == FileChangeType.DELETED:
+                if change.previous is None:
+                    continue
+
+                self.uow.repository_files.delete(
+                    change.previous
+                )
+
+            # ----------------------------------------------------------
+            # Unchanged
+            # ----------------------------------------------------------
+
+            elif change.change_type == FileChangeType.UNCHANGED:
+                continue
+
+    
+    def _update_repository_file(
+        self,
+        existing: RepositoryFile,
+        current: RepositoryFile,
+    ) -> None:
+        """
+        Update an existing RepositoryFile with newly scanned metadata.
+        """
+
+        existing.file_name = current.file_name
+        existing.extension = current.extension
+        existing.language = current.language
+        existing.size_bytes = current.size_bytes
+        existing.sha256_hash = current.sha256_hash
+        existing.last_modified_at = current.last_modified_at
+
+        existing.is_indexed = False
+        existing.is_ignored = False
+
+    
+    def _remove_file_from_indexes(
+        self,
+        repository_file: RepositoryFile,
+    ) -> None:
+        """
+        Remove all indexed representations of a repository file.
+        """
+
+        self.qdrant_service.delete_file(
+            repository_file_id=repository_file.id,
+        )
+
+        self.bm25_service.delete_file(
+            repository_file_id=repository_file.id,
+        )
