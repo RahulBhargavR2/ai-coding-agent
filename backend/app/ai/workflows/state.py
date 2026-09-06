@@ -8,6 +8,7 @@ from app.ai.models.changes import ProposedChange
 from app.ai.models.review import ReviewResult
 from app.ai.models.critique import CritiqueResult
 from app.ai.models.execution import ExecutionResult
+from app.ai.models.summary import SummaryResult
 
 class CodingAgentState(TypedDict, total=False):
     """
@@ -43,3 +44,6 @@ class CodingAgentState(TypedDict, total=False):
 
     # Control flow
     iteration_count: int
+
+    # Summary
+    summary: SummaryResult
