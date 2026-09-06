@@ -6,7 +6,6 @@ from app.models.enums import UserRole
 from app.models.user import User
 
 
-
 @pytest.fixture
 def user_factory(db_session, password_service):
     """
@@ -17,7 +16,7 @@ def user_factory(db_session, password_service):
         *,
         name="Test User",
         email=None,
-        password="Password123!",
+        password="CorrectPassword123!",
         role=UserRole.USER,
         is_active=True,
         is_verified=True,

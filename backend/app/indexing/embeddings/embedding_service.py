@@ -84,6 +84,33 @@ class EmbeddingService:
             )
 
         return results
+    
+    def embed_query(
+        self,
+        query: str,
+    ) -> tuple[float, ...]:
+        """
+        Generate an embedding for a search query.
+
+        Query embeddings use the same configured model and
+        normalization settings as repository chunk embeddings.
+        """
+
+        if not query.strip():
+            raise ValueError("query must not be empty.")
+
+        embedding = self._model.encode(
+            query,
+            normalize_embeddings=self.config.normalize_embeddings,
+            convert_to_numpy=True,
+            show_progress_bar=False,
+        )
+
+        vector = tuple(float(value) for value in embedding)
+
+        self._validate_dimension(vector)
+
+        return vector
 
     def embed_batch(
         self,

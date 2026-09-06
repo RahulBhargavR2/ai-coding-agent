@@ -3,7 +3,7 @@ from typing import Annotated
 from typing import Annotated
 
 from app.database.session import get_db
-from app.database.unit_of_work import UnitOfWork
+from app.core.unit_of_work import UnitOfWork
 
 
 

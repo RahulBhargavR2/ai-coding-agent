@@ -71,7 +71,6 @@ class MetadataExtractor:
             "class": frozenset(
                 {
                     "class_declaration",
-                    "class",
                 }
             ),
             "function": frozenset(
@@ -360,6 +359,9 @@ class MetadataExtractor:
                 frozenset(),
             ),
             source_bytes=source_bytes,
+            category="function",
+            class_node_types=node_types.get("class",frozenset())
+            
         )
 
         methods = self._extract_nodes(
@@ -369,6 +371,8 @@ class MetadataExtractor:
                 frozenset(),
             ),
             source_bytes=source_bytes,
+            category="method",
+            class_node_types=node_types.get("class",frozenset())
         )
 
         imports = self._extract_nodes(
@@ -398,6 +402,8 @@ class MetadataExtractor:
         root: Node,
         node_types: frozenset[str],
         source_bytes: bytes,
+        category: str | None = None,
+        class_node_types: frozenset[str] | None = None
     ) -> list[CodeMetadata]:
         """
         Extract metadata for all matching nodes.
@@ -411,6 +417,20 @@ class MetadataExtractor:
             node_types=node_types,
         )
 
+        if category == "function":
+            nodes = [
+                node
+                for node in nodes
+                if not MetadataExtractor._is_method_node(node,class_node_types)
+            ]
+
+        elif category == "method":
+            nodes = [
+                node
+                for node in nodes
+                if MetadataExtractor._is_method_node(node,class_node_types)
+            ]
+
         return [
             MetadataExtractor._build_metadata(
                 node=node,
@@ -418,6 +438,21 @@ class MetadataExtractor:
             )
             for node in nodes
         ]
+    
+    @staticmethod
+    def _is_method_node(
+        node: Node,
+        class_node_types: frozenset[str],
+    ) -> bool:
+        parent = node.parent
+
+        while parent is not None:
+            if parent.type in class_node_types:
+                return True
+
+            parent = parent.parent
+
+        return False
 
     @staticmethod
     def _build_metadata(

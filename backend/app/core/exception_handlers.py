@@ -20,6 +20,7 @@ from app.core.exceptions import (
     RepositoryAlreadyExists,
     RepositoryFileNotFound,
     RepositoryFileAlreadyExists,
+    ChatNotFound,
     BusinessValidationError,
     LLMError
 )
@@ -203,7 +204,15 @@ def register_exception_handlers(app: FastAPI) -> None:
             exc.message
         )
     
-    
+    @app.exception_handler(ChatNotFound)
+    async def chat_not_found_handler(
+        request:Request,
+        exc:ChatNotFound
+    ):
+        return exception_response(
+            status.HTTP_404_NOT_FOUND,
+            exc.message
+        )
 
     @app.exception_handler(BusinessValidationError)
     async def validation_handler(

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from app.database.unit_of_work import UnitOfWork
+from app.core.unit_of_work import UnitOfWork
 
 from app.core.exceptions import (
     WorkspaceNotFound,

@@ -32,13 +32,25 @@ from app.models.repository_file import RepositoryFile
 @dataclass(frozen=True)
 class IndexingResult:
     """
-    Summary of a completed repository indexing operation.
+    Summary of a repository indexing operation.
     """
 
     repository_id: UUID
+
     files_discovered: int
+
+    files_added: int
+
+    files_modified: int
+
+    files_unchanged: int
+
+    files_deleted: int
+
     files_indexed: int
+
     chunks_created: int
+
     embeddings_created: int
 
 
@@ -155,6 +167,12 @@ class IndexingPipeline:
         """
 
         try:
+
+            self._set_status(
+                repository,
+                RepositoryStatus.CLONING,
+            )
+
             self._import_repository(
                 repository=repository,
                 archive_path=archive_path,
@@ -172,6 +190,13 @@ class IndexingPipeline:
                 scanned_files=scanned_files,
             )
 
+            self._set_status(
+                repository,
+                RepositoryStatus.INDEXING,
+            )
+
+            self.uow.commit()
+
             self._apply_file_changes(
                 repository=repository,
                 changes=changes,
@@ -183,6 +208,7 @@ class IndexingPipeline:
                 repository=repository,
                 changes=changes,
             )
+            
 
             self._mark_repository_ready(repository)
 
@@ -241,7 +267,7 @@ class IndexingPipeline:
             return
 
         raise BusinessValidationError(
-            f"Unsupported repository provider: " f"{repository.provider.value}"
+            f"Unsupported repository provider: {repository.provider.value}"
         )
 
     # ==================================================================
@@ -391,6 +417,7 @@ class IndexingPipeline:
             chunks_created += len(chunks)
             embeddings_created += len(embeddings)
 
+
         # --------------------------------------------------------------
         # Update vector store
         # --------------------------------------------------------------
@@ -408,17 +435,38 @@ class IndexingPipeline:
             self.bm25_service.add(
                 bm25_documents
             )
+        
+        files_added = sum(
+        change.change_type == FileChangeType.NEW
+        for change in changes
+        )
+
+        files_modified = sum(
+            change.change_type == FileChangeType.MODIFIED
+            for change in changes
+        )
+
+        files_unchanged = sum(
+            change.change_type == FileChangeType.UNCHANGED
+            for change in changes
+        )
+
+        files_deleted = sum(
+            change.change_type == FileChangeType.DELETED
+            for change in changes
+        )
 
         return IndexingResult(
             repository_id=repository.id,
-            files_discovered=len(
-                [
-                    change
-                    for change in changes
-                    if change.change_type
-                    != FileChangeType.DELETED
-                ]
+            files_discovered=(
+                files_added
+                + files_modified
+                + files_unchanged
             ),
+            files_added=files_added,
+            files_modified=files_modified,
+            files_unchanged=files_unchanged,
+            files_deleted=files_deleted,
             files_indexed=files_indexed,
             chunks_created=chunks_created,
             embeddings_created=embeddings_created,
@@ -790,3 +838,15 @@ class IndexingPipeline:
         self.bm25_service.delete_file(
             repository_file_id=repository_file.id,
         )
+
+    
+    def _set_status(
+        self,
+        repository: Repository,
+        status: RepositoryStatus,
+    ) -> None:
+        """
+        Update repository indexing status.
+        """
+
+        repository.status = status

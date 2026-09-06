@@ -10,7 +10,8 @@ from app.repositories.workspace_repository import WorkspaceRepository
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.repository_repository import RepositoryRepository
 from app.repositories.repository_file_repository import RepositoryFileRepository
-
+from app.repositories.chat_repository import ChatRepository
+from app.repositories.chat_message_repository import ChatMessageRepository
 
 
 class UnitOfWork:
@@ -51,6 +52,14 @@ class UnitOfWork:
     @cached_property
     def repository_files(self) -> RepositoryFileRepository:
         return RepositoryFileRepository(self._db)
+
+    @cached_property
+    def chats(self) -> ChatRepository:
+        return ChatRepository(self._db)
+    
+    @cached_property
+    def chat_messages(self) -> ChatMessageRepository:
+        return ChatMessageRepository(self._db)
 
     # ------------------------------------------------------------------
     # Transaction Management

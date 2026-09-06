@@ -115,7 +115,19 @@ class RepositoryResponse(BaseModel):
 
 class RepositoryIndexResponse(BaseModel):
     repository_id: UUID
+
     files_discovered: int
+    files_added: int
+    files_modified: int
+    files_unchanged: int
+    files_deleted: int
+
     files_indexed: int
     chunks_created: int
     embeddings_created: int
+
+
+class RepositoryIndexStatusResponse(BaseModel):
+    repository_id: UUID
+    status: RepositoryStatus
+    last_indexed_at: datetime | None

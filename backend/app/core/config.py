@@ -1,8 +1,10 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from os import getenv
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ENV_FILE = getenv("ENV_FILE",".env")
+
+ENV_FILE = getenv("ENV_FILE", ".env")
+
 
 class Settings(BaseSettings):
     # App
@@ -28,13 +30,23 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: str
     OPENROUTER_BASE_URL: str
 
+    # Qdrant
+    QDRANT_URL: str
+    QDRANT_COLLECTION_NAME: str
+
+    # Embeddings
+    EMBEDDING_MODEL_NAME: str
+    EMBEDDING_DIMENSION: int
+    EMBEDDING_BATCH_SIZE: int
+    EMBEDDING_NORMALIZE: bool = True
+
     # Logging
     LOG_LEVEL: str
 
     # CORS
     ALLOWED_ORIGINS: list[str] = []
 
-    # Storage path
+    # Storage
     REPOSITORY_STORAGE_PATH: str
 
     model_config = SettingsConfigDict(

@@ -135,12 +135,12 @@ def get_qdrant_client() -> QdrantClient:
 
     return QdrantClient(
         url=settings.QDRANT_URL,
-        api_key=settings.QDRANT_API_KEY,
+        # api_key=settings.QDRANT_API_KEY,
     )
 
 
 def get_qdrant_service(
-    embedding_dimension: int,
+    embedding_dimension: int = settings.EMBEDDING_DIMENSION,
 ) -> QdrantService:
     """
     Create the Qdrant service for the configured embedding dimension.
@@ -158,6 +158,19 @@ def get_qdrant_service(
     )
 
 
+@lru_cache
+def get_bm25_service() -> BM25Service:
+    """
+    Create the shared BM25 service.
+
+    The BM25 index is maintained in memory and therefore must be
+    shared by indexing and retrieval within the application process.
+    """
+
+    return BM25Service()
+
+
+
 IndexingPipelineDep = Annotated[
     IndexingPipeline,
     Depends(get_indexing_pipeline)
@@ -167,6 +180,3 @@ RepositoryIndexingServiceDep = Annotated[
     RepositoryIndexingService,
     Depends(get_repository_indexing_service)
 ]
-
-
-Duadrant
