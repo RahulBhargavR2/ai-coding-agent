@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     # Storage
     REPOSITORY_STORAGE_PATH: str
 
+    MAX_AGENT_ITERATIONS: int = 3
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
         extra="ignore",
