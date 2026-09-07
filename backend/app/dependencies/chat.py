@@ -17,20 +17,12 @@ from app.services.chat.context_builder import ContextBuilder, ContextConfig
 
 from app.dependencies.llm import LLMServiceDEP
 
-from app.dependencies.indexing import get_embedding_service,get_bm25_service,get_qdrant_service
-
-
-@lru_cache(maxsize=1)
-def get_retriever() -> HybridRetriever:
-    """
-    Create the shared hybrid retriever.
-    """
-
-    return HybridRetriever(
-        embedding_service=get_embedding_service(),
-        qdrant_service=get_qdrant_service(),
-        bm25_service=get_bm25_service(),
-    )
+from app.dependencies.indexing import (
+    get_embedding_service,
+    get_bm25_service,
+    get_qdrant_service,
+    get_retriever,
+)
 
 
 def get_chat_service(
@@ -51,5 +43,4 @@ def get_chat_service(
     )
 
 
-
-ChatServiceDep = Annotated[ChatService,Depends(get_chat_service)]
+ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]

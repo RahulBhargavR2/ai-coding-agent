@@ -33,6 +33,7 @@ from app.services.workspace.repository_indexing_service import (
     RepositoryIndexingService,
 )
 
+from app.retrieval.hybrid_retriever import HybridRetriever
 
 def get_indexing_pipeline(
     uow: UnitOfWorkDep,
@@ -169,6 +170,18 @@ def get_bm25_service() -> BM25Service:
 
     return BM25Service()
 
+
+@lru_cache(maxsize=1)
+def get_retriever() -> HybridRetriever:
+    """
+    Create the shared hybrid retriever.
+    """
+
+    return HybridRetriever(
+        embedding_service=get_embedding_service(),
+        qdrant_service=get_qdrant_service(),
+        bm25_service=get_bm25_service(),
+    )
 
 
 IndexingPipelineDep = Annotated[

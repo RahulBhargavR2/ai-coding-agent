@@ -54,36 +54,6 @@ def import_github_repository(
     )
 
 
-@router.post(
-    "/import/upload",
-    response_model=RepositoryResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def upload_repository(
-    project_id: UUID = Form(...),
-    name: str = Form(...),
-    file: UploadFile = File(...),
-    *,
-    current_user: CurrentActiveUser,
-    uow: UnitOfWorkDep,
-) -> RepositoryResponse:
-
-
-    request = UploadRepositoryCreate(
-        project_id=project_id,
-        name=name,
-    )
-
-    service = RepositoryService(uow)
-
-    # File processing will be added in Sprint 2
-
-    return service.create_uploaded_repository(
-        user_id=current_user.id,
-        data=request,
-    )
-
-
 @router.get(
     "/{repository_id}",
     response_model=RepositoryResponse,
@@ -144,25 +114,6 @@ def delete_repository(
 
 @router.post(
     "/{repository_id}/index",
-)
-def index_repository(
-    repository_id: UUID,
-    current_user: CurrentActiveUser,
-    uow: UnitOfWorkDep,
-) -> IndexingResult:
-    service = RepositoryIndexingService(
-        uow=uow,
-        pipeline=get_indexing_pipeline(uow),
-    )
-
-    return service.index_repository(
-        repository_id=repository_id,
-        user_id=current_user.id,
-    )
-
-
-@router.post(
-    "/{repository_id}/index",
     response_model=RepositoryIndexResponse,
     status_code=status.HTTP_200_OK,
 )
@@ -195,12 +146,13 @@ def index_repository(
     status_code=status.HTTP_200_OK,
 )
 def upload_repository(
-    project_id: UUID,
-    name: str,
+    project_id: UUID = Form(...),
+    name: str = Form(...),
     file: UploadFile = File(...),
     *,
     current_user: CurrentActiveUser,
-    indexing_service: RepositoryIndexingServiceDep
+    uow: UnitOfWorkDep,
+    indexing_service: RepositoryIndexingServiceDep,
 ) -> RepositoryIndexResponse:
     """
     Upload a ZIP repository and index it.
@@ -215,6 +167,7 @@ def upload_repository(
     temporary_path: Path | None = None
 
     try:
+        repository_service = RepositoryService(uow)
         with NamedTemporaryFile(
             suffix=".zip",
             delete=False,
@@ -261,7 +214,7 @@ def upload_repository(
 )
 def get_repository_index_status(
     repository_id: UUID,
-    current_user: CurrentUser,
+    current_user: CurrentActiveUser,
     uow:UnitOfWorkDep
 ) -> RepositoryIndexStatusResponse:
     """

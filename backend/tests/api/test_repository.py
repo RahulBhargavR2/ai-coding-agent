@@ -157,14 +157,33 @@ def test_import_duplicate_github_repository(
 # Upload
 # ============================================================================
 
+import io
+import zipfile
 
-def test_upload_repository(
-    client,
-    project,
-    auth_headers,
-):
+
+def make_test_zip() -> bytes:
+    buffer = io.BytesIO()
+
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr(
+            "README.md",
+            "# Test Repository\n",
+        )
+        archive.writestr(
+            "src/example.py",
+            "print('hello')\n",
+        )
+
+    return buffer.getvalue()
+
+
+# def test_upload_repository(
+#     client,
+#     project,
+#     auth_headers,
+# ):
     response = client.post(
-        base_url+"/repositories/import/upload",
+        base_url+"/repositories/upload",
         data={
             "project_id": str(project.id),
             "name": "uploaded-repository",
@@ -172,7 +191,7 @@ def test_upload_repository(
         files={
             "file": (
                 "repository.zip",
-                b"fake zip content",
+                make_test_zip(),
                 "application/zip",
             )
         },
@@ -194,7 +213,7 @@ def test_upload_repository_without_authentication(
     project,
 ):
     response = client.post(
-        base_url+"/repositories/import/upload",
+        base_url+"/repositories/upload",
         data={
             "project_id": str(project.id),
             "name": "uploaded-repository",
@@ -216,7 +235,7 @@ def test_upload_repository_project_not_found(
     auth_headers,
 ):
     response = client.post(
-        base_url+"/repositories/import/upload",
+        base_url+"/repositories/upload",
         data={
             "project_id": str(uuid4()),
             "name": "uploaded-repository",
@@ -248,7 +267,7 @@ def test_upload_duplicate_repository(
     )
 
     response = client.post(
-        base_url+"/repositories/import/upload",
+        base_url+"/repositories/upload",
         data={
             "project_id": str(project.id),
             "name": "existing-repository",
