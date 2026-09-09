@@ -23,8 +23,18 @@ class ToolDispatcher:
             )
         
         try:
+            validated_arguments = tool.arguments_schema.model_validate(
+                arguments
+            )
+        except Exception as exc:
+            return ToolResult(
+                success=False,
+                error=f"Invalid tool arguments: {exc}"
+            )
+        
+        try:
             return await tool.execute(
-                arguments=arguments,
+                arguments=validated_arguments.model_dump(),
                 context=context
             )
         except Exception as exc:

@@ -2,11 +2,12 @@ from pathlib import Path
 
 from app.tools.base import Tool, ToolContext, ToolResult
 from app.security.sandbox import PathSandbox
-
+from app.schemas.tool import SearchFilesArguments
 
 class SearchFilesTool(Tool):
     name = "search_files"
     description = "Search for text inside files in the repository."
+    arguments_schema = SearchFilesArguments
 
     async def execute(
         self,

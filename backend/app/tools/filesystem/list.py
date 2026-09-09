@@ -2,10 +2,13 @@ from pathlib import Path
 
 from app.tools.base import Tool, ToolContext, ToolResult
 from app.security.sandbox import PathSandbox
+from app.schemas.tool import ListFilesArguments
+
 
 class ListFilesTool(Tool):
     name = "list_files"
     description = "List files and directories inside the repository."
+    arguments_schema = ListFilesArguments
 
     async def execute(
         self,

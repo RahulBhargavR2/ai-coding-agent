@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any
 from abc import ABC, abstractmethod
 
+from pydantic import BaseModel
 
 @dataclass
 class ToolResult:
@@ -21,6 +22,7 @@ class ToolContext:
 class Tool(ABC):
     name: str
     description: str
+    arguments_schema: type[BaseModel]
 
     @abstractmethod
     async def execute(

@@ -2,10 +2,13 @@ from pathlib import Path
 
 from app.tools.base import Tool, ToolContext, ToolResult
 from app.security.sandbox import PathSandbox
+from app.schemas.tool import ReadFileArguments
+
 
 class ReadFileTool(Tool):
     name = "read_file"
     description = "Read the contents of a file from the repository."
+    arguments_schema = ReadFileArguments
 
     async def execute(
         self,
