@@ -22,7 +22,8 @@ from app.core.exceptions import (
     RepositoryFileAlreadyExists,
     ChatNotFound,
     BusinessValidationError,
-    LLMError
+    LLMError,
+    ToolAlreadyExists
 )
 
 
@@ -233,3 +234,13 @@ def register_exception_handlers(app: FastAPI) -> None:
             status.HTTP_503_SERVICE_UNAVAILABLE,
             exc.message,
         )
+
+    @app.exception_handler(ToolAlreadyExists)
+    async def tool_already_exists_handler(
+        request: Request,
+        exc: ToolAlreadyExists
+    ):
+        return exception_response((
+            status.HTTP_409_CONFLICT,
+            exc.message
+        ))

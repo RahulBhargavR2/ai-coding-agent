@@ -125,3 +125,11 @@ class BusinessValidationError(AppException):
 
 class LLMError(AppException):
     """Raised when an LLM provider fails."""
+
+
+# ============================================================================
+# Tools
+# ============================================================================
+
+class ToolAlreadyExists(AppException):
+    """Raised when attempting to register a existing Tool"""
