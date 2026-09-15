@@ -20,3 +20,7 @@ class SearchFilesArguments(ToolArguments):
 
 class EmptyToolArguments(ToolArguments):
     pass
+
+class WriteFileArguments(ToolArguments):
+    path: str = Field(min_length=1)
+    content: str

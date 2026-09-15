@@ -3,11 +3,14 @@ from pathlib import Path
 from app.tools.base import Tool, ToolContext, ToolResult
 from app.security.sandbox import PathSandbox
 from app.schemas.tool import SearchFilesArguments
+from app.tools.permissions import ToolPermission
+
 
 class SearchFilesTool(Tool):
     name = "search_files"
     description = "Search for text inside files in the repository."
     arguments_schema = SearchFilesArguments
+    permission = ToolPermission.READ
 
     async def execute(
         self,

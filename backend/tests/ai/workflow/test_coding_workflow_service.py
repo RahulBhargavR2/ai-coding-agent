@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from app.ai.workflows.coding_workflow import CodingWorkflowService
-
+import pytest
 
 class FakeWorkflow:
     def __init__(self) -> None:
@@ -11,7 +11,7 @@ class FakeWorkflow:
     def build(self):
         return self
 
-    def invoke(self, state):
+    def ainvoke(self, state):
         self.called = True
         self.received_state = state
 
@@ -20,7 +20,8 @@ class FakeWorkflow:
         }
 
 
-def test_coding_workflow_service_runs_workflow() -> None:
+@pytest.mark.asyncio
+async def test_coding_workflow_service_runs_workflow() -> None:
     workflow = FakeWorkflow()
     service = CodingWorkflowService(workflow=workflow)
 
@@ -30,7 +31,8 @@ def test_coding_workflow_service_runs_workflow() -> None:
         "iteration_count": 0,
     }
 
-    result = service.run(state)
+    result = await service.run(state)
+    print(workflow.called)
 
     assert workflow.called is True
     assert workflow.received_state == state

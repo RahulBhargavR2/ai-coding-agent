@@ -1,11 +1,13 @@
 from app.tools.base import Tool, ToolContext, ToolResult
 from app.tools.git.runner import GitRunner
 from app.schemas.tool import EmptyToolArguments
+from app.tools.permissions import ToolPermission
 
 class GitStatusTool(Tool):
     name = "git_status"
     description = "Get the current Git status of the repository."
     arguments_schema = EmptyToolArguments
+    permission = ToolPermission.GIT
 
     async def execute(
         self,

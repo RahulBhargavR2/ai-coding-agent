@@ -8,5 +8,5 @@ class CodingWorkflowService:
     def __init__(self, workflow: CodingWorkflow) -> None:
         self.workflow = workflow
 
-    def run(self, state: CodingAgentState) -> dict[str, Any]:
-        return self.workflow.build().invoke(state)
+    async def run(self, state: CodingAgentState) -> dict[str, Any]:
+        return self.workflow.build().ainvoke(state)

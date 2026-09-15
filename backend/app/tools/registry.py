@@ -1,9 +1,13 @@
+from typing import Any
+
 from app.tools.base import Tool
 from app.core.exceptions import ToolAlreadyExists
 
 from app.tools.filesystem.list import ListFilesTool
 from app.tools.filesystem.read import ReadFileTool
 from app.tools.filesystem.search import SearchFilesTool
+from app.tools.filesystem.write import WriteFileTool
+
 from app.tools.git.diff import GitDiffTool
 from app.tools.git.log import GitLogTool
 from app.tools.git.status import GitStatusTool
@@ -30,6 +34,12 @@ class ToolRegistry:
 
     def list_tools(self)-> list[Tool]:
         return list(self._tools.values())
+    
+    def get_llm_definitions(self) -> list[dict[str, Any]]:
+        return [
+            tool.to_llm_definition()
+            for tool in self._tools.values()
+        ]
 
 
 def create_default_registry() -> ToolRegistry:
@@ -38,6 +48,7 @@ def create_default_registry() -> ToolRegistry:
     registry.register(ReadFileTool())
     registry.register(ListFilesTool())
     registry.register(SearchFilesTool())
+    registry.register(WriteFileTool())
 
     registry.register(GitStatusTool())
     registry.register(GitDiffTool())

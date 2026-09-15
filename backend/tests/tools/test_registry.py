@@ -84,6 +84,7 @@ def test_default_registry_contains_all_tools():
         "read_file",
         "list_files",
         "search_files",
+        "write_file",
         "git_status",
         "git_diff",
         "git_log",

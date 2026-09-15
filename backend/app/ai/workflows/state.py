@@ -20,6 +20,7 @@ class CodingAgentState(TypedDict, total=False):
     workspace_id: UUID
     project_id: UUID
     repository_id: UUID
+    repository_path: str
 
     # Planning
     plan: list[str]

@@ -19,6 +19,8 @@ from app.retrieval.retriever import Retriever
 from app.ai.workflows.graph import CodingWorkflow
 from app.ai.workflows.coding_workflow import CodingWorkflowService
 
+from app.tools.tool_service import ToolService
+from app.security.policy import CODING_POLICY
 
 @lru_cache
 def get_llm_provider() -> LLMProvider:
@@ -60,9 +62,16 @@ def get_retriever_agent(
 ) -> RetrieverAgent:
     return RetrieverAgent(retriever=retriever)
 
+def get_tool_service() -> ToolService:
+    return ToolService()
 
-def get_executor_agent() -> ExecutorAgent:
-    return ExecutorAgent()
+def get_executor_agent(
+    tool_servie : ToolService = Depends(get_tool_service)
+) -> ExecutorAgent:
+    return ExecutorAgent(
+        tool_service=tool_servie,
+        policy=CODING_POLICY
+    )
 
 
 def get_coding_workflow(
