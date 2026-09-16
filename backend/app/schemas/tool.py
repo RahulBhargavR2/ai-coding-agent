@@ -24,3 +24,12 @@ class EmptyToolArguments(ToolArguments):
 class WriteFileArguments(ToolArguments):
     path: str = Field(min_length=1)
     content: str
+
+class ShellArguments(ToolArguments):
+    command: list[str] = Field(min_length=1)
+
+class PythonArguments(ToolArguments):
+    code: str = Field(min_length=1)
+
+class DocumentationSearchArguments(ToolArguments):
+    query: str = Field(min_length=1)

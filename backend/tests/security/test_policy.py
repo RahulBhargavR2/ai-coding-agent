@@ -20,4 +20,4 @@ def test_coding_policy():
 
     assert CODING_POLICY.allows(ToolPermission.WRITE)
 
-    assert not CODING_POLICY.allows(ToolPermission.EXECUTE)
+    assert CODING_POLICY.allows(ToolPermission.EXECUTE)

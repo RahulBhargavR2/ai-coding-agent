@@ -10,7 +10,7 @@ from app.security.permissions import PermissionChecker
 from app.tools.permissions import ToolPermission
 from app.tools.audit import AuditLogger
 
-
+from app.security.policy import CODING_POLICY
 class FakeToolArguments(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -116,7 +116,7 @@ def test_tool_service_returns_llm_definitions():
 
     definitions = service.get_llm_definitions()
 
-    assert len(definitions) == 7
+    assert len(definitions) == 10
 
     names = {definition["name"] for definition in definitions}
 
@@ -128,6 +128,9 @@ def test_tool_service_returns_llm_definitions():
         "git_status",
         "git_diff",
         "git_log",
+        "execute_command",
+        "execute_python",
+        "search_documentation",
     }
 
 
@@ -338,3 +341,114 @@ async def test_tool_service_audits_tool_failure(tmp_path):
     assert record.tool_name == "read_file"
     assert record.success is False
     assert record.error is not None
+
+
+@pytest.mark.asyncio
+async def test_default_tool_service_denies_shell_execution(tmp_path):
+    service = ToolService()
+
+    context = ToolContext(
+        repository_path=str(tmp_path),
+    )
+
+    result = await service.execute(
+        tool_name="execute_command",
+        arguments={
+            "command": ["pytest", "-q"],
+        },
+        context=context,
+    )
+
+    assert result.success is False
+    assert "Permission denied" in (result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_coding_policy_allows_shell_execution(tmp_path):
+    service = ToolService()
+
+    context = ToolContext(
+        repository_path=str(tmp_path),
+        allowed_permissions=set(CODING_POLICY.allowed_permissions),
+    )
+
+    result = await service.execute(
+        tool_name="execute_command",
+        arguments={
+            "command": [
+                "python",
+                "-c",
+                "print('hello')",
+            ],
+        },
+        context=context,
+    )
+
+    assert result.success is True
+    assert result.output["stdout"].strip() == "hello"
+
+
+@pytest.mark.asyncio
+async def test_default_tool_service_denies_python_execution(tmp_path):
+    service = ToolService()
+
+    context = ToolContext(
+        repository_path=str(tmp_path),
+    )
+
+    result = await service.execute(
+        tool_name="execute_python",
+        arguments={
+            "code": "print('hello')",
+        },
+        context=context,
+    )
+
+    assert result.success is False
+    assert "Permission denied" in (result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_coding_policy_allows_python_execution(tmp_path):
+    service = ToolService()
+
+    context = ToolContext(
+        repository_path=str(tmp_path),
+        allowed_permissions=set(CODING_POLICY.allowed_permissions),
+    )
+
+    result = await service.execute(
+        tool_name="execute_python",
+        arguments={
+            "code": "print(2 + 2)",
+        },
+        context=context,
+    )
+
+    assert result.success is True
+    assert result.output["stdout"].strip() == "4"
+
+
+@pytest.mark.asyncio
+async def test_documentation_search_through_tool_service(tmp_path):
+    (tmp_path / "README.md").write_text(
+        "# Authentication\n" "This project uses JWT authentication.\n",
+        encoding="utf-8",
+    )
+
+    service = ToolService()
+
+    context = ToolContext(
+        repository_path=str(tmp_path),
+    )
+
+    result = await service.execute(
+        tool_name="search_documentation",
+        arguments={"query": "JWT authentication"},
+        context=context,
+    )
+
+    assert result.success is True
+    assert len(result.output) == 1
+    assert result.output[0]["path"] == "README.md"
+    assert result.output[0]["line"] == 2

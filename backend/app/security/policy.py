@@ -27,6 +27,7 @@ CODING_POLICY = ExecutionPolicy(
             ToolPermission.READ,
             ToolPermission.GIT,
             ToolPermission.WRITE,
+            ToolPermission.EXECUTE
         }
     )
 )

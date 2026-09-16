@@ -12,6 +12,12 @@ from app.tools.git.diff import GitDiffTool
 from app.tools.git.log import GitLogTool
 from app.tools.git.status import GitStatusTool
 
+from app.tools.shell import ShellTool
+
+from app.tools.python import PythonTool
+
+from app.tools.documentation import DocumentationSearchTool
+
 class ToolRegistry:
     def __init__(self) -> None:
         self._tools: dict[str,Tool] = {}
@@ -53,5 +59,11 @@ def create_default_registry() -> ToolRegistry:
     registry.register(GitStatusTool())
     registry.register(GitDiffTool())
     registry.register(GitLogTool())
+
+    registry.register(ShellTool())
+
+    registry.register(PythonTool())
+
+    registry.register(DocumentationSearchTool())
 
     return registry

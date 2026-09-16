@@ -5,6 +5,7 @@ from app.tools.registry import ToolRegistry
 from app.core.exceptions import ToolAlreadyExists
 from app.tools.registry import create_default_registry
 
+from app.tools.permissions import ToolPermission
 class FakeTool(Tool):
     name = "fake_tool"
     description = "A fake tool used for testing."
@@ -88,6 +89,9 @@ def test_default_registry_contains_all_tools():
         "git_status",
         "git_diff",
         "git_log",
+        "execute_command",
+        "execute_python",
+        "search_documentation",
     }
 
 
@@ -122,3 +126,21 @@ def test_read_file_schema_rejects_unknown_arguments():
                 "unknown": True,
             }
         )
+
+
+def test_default_registry_contains_shell_tool():
+    registry = create_default_registry()
+
+    tool = registry.get("execute_command")
+
+    assert tool.name == "execute_command"
+    assert tool.permission == ToolPermission.EXECUTE
+
+
+def test_default_registry_contains_python_tool():
+    registry = create_default_registry()
+
+    tool = registry.get("execute_python")
+
+    assert tool.name == "execute_python"
+    assert tool.permission == ToolPermission.EXECUTE
