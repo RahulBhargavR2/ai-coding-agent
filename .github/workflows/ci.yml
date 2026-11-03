@@ -1,0 +1,59 @@
+
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-tests:
+    name: Backend Quality and Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      # 1. Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # 2. Install uv
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      # 3. Setup Python
+      - name: Setup Python
+        run: uv python install 3.14
+
+      # 4. Install dependencies
+      - name: Install dependencies
+        run: uv sync --locked --all-groups
+
+      # 5. Run linting
+      - name: Run Ruff
+        run: uv run --no-sync ruff check .
+
+      # 6. Run tests
+      - name: Run Pytest
+        run: uv run --no-sync pytest -v
