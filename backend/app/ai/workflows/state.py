@@ -9,6 +9,7 @@ from app.ai.models.review import ReviewResult
 from app.ai.models.critique import CritiqueResult
 from app.ai.models.execution import ExecutionResult
 from app.ai.models.summary import SummaryResult
+from app.coding.changes.patch import Patch
 
 class CodingAgentState(TypedDict, total=False):
     """
@@ -48,3 +49,5 @@ class CodingAgentState(TypedDict, total=False):
 
     # Summary
     summary: SummaryResult
+
+    patch: Patch
