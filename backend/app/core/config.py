@@ -51,6 +51,9 @@ class Settings(BaseSettings):
 
     MAX_AGENT_ITERATIONS: int = 3
 
+    CHANGE_REVIEWER_MAX_FILES: int =30
+    CHANGE_REVIEWER_MAX_CHANGE_SIZE: int=200000
+    
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
         extra="ignore",

@@ -10,6 +10,9 @@ from app.ai.models.critique import CritiqueResult
 from app.ai.models.execution import ExecutionResult
 from app.ai.models.summary import SummaryResult
 from app.coding.changes.patch import Patch
+from app.coding.testing.test_result import  TestResult
+from app.coding.testing.failure_analyzer import FailureAnalysis
+
 
 class CodingAgentState(TypedDict, total=False):
     """
@@ -49,5 +52,9 @@ class CodingAgentState(TypedDict, total=False):
 
     # Summary
     summary: SummaryResult
+
+    # Testing
+    test_result: TestResult
+    failure_analysis: FailureAnalysis
 
     patch: Patch

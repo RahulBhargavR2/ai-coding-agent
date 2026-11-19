@@ -6,6 +6,7 @@ from app.coding.changes.patch import Patch
 from app.coding.review.change_reviewer import (
     ChangeReviewer,
     ReviewDecision,
+    ChangeReviewerConfig
 )
 
 
@@ -160,9 +161,10 @@ def test_large_patch_is_rejected():
             )
         ]
     )
+    congif = ChangeReviewerConfig(max_change_size=100)
 
     reviewer = ChangeReviewer(
-        max_change_size=100,
+        config=congif
     )
 
     result = reviewer.review(patch)
@@ -184,8 +186,10 @@ def test_custom_file_limit():
         ]
     )
 
+    config = ChangeReviewerConfig(max_files=2)
+
     reviewer = ChangeReviewer(
-        max_files=2,
+        config
     )
 
     result = reviewer.review(patch)

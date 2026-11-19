@@ -75,19 +75,62 @@ class CoderAgent:
             context_parts,
         )
 
+        failure_analysis = state.get("failure_analysis")
+
+        failure_text = ""
+
+        failure_text = ""
+
+        if failure_analysis:
+            failure_details = []
+
+            for failure in failure_analysis.failures:
+                detail = f"- Test: {failure.test_name}"
+
+                if failure.file_path:
+                    detail += f"\n  File: {failure.file_path}"
+
+                if failure.line_number is not None:
+                    detail += f"\n  Line: {failure.line_number}"
+
+                if failure.error_type:
+                    detail += f"\n  Error type: {failure.error_type}"
+
+                if failure.error_message:
+                    detail += f"\n  Error: {failure.error_message}"
+
+                failure_details.append(detail)
+
+            failure_text = f"""
+        Previous test execution failed.
+
+        Failure analysis:
+        {failure_analysis.summary}
+
+        Failure details:
+        {chr(10).join(failure_details)}
+
+        Your task is to correct the previous implementation.
+        Do not blindly repeat the previous changes.
+        Preserve functionality that was already working.
+        """
         return f"""
-User request:
+            User request:
 
-{request}
+            {request}
 
-Implementation plan:
+            Implementation plan:
 
-{plan_text}
+            {plan_text}
 
-Repository context:
+            Repository context:
 
-{context_text}
-"""
+            {context_text}
+
+            Previous test failure analysis:
+
+            {failure_text}
+        """
 
     @staticmethod
     def _parse_response(

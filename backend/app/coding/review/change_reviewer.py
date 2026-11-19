@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field
 
 from app.coding.changes.change import ChangeOperation
 from app.coding.changes.patch import Patch
-
+    
+from app.coding.review.reviewer_coinfig import ChangeReviewerConfig
 
 class ReviewDecision(StrEnum):
     APPROVE = "approve"
@@ -33,8 +34,6 @@ class ChangeReviewer:
     Performs deterministic safety and quality checks on a Patch.
     """
 
-    DEFAULT_MAX_FILES = 20
-    DEFAULT_MAX_CHANGE_SIZE = 100_000
 
     SENSITIVE_FILES = {
         ".env",
@@ -46,12 +45,9 @@ class ChangeReviewer:
 
     def __init__(
         self,
-        *,
-        max_files: int = DEFAULT_MAX_FILES,
-        max_change_size: int = DEFAULT_MAX_CHANGE_SIZE,
+        config: ChangeReviewerConfig | None = None
     ) -> None:
-        self.max_files = max_files
-        self.max_change_size = max_change_size
+        self.config = config or  ChangeReviewerConfig()
 
     def review(self, patch: Patch) -> ReviewResult:
         issues: list[ReviewIssue] = []
@@ -108,12 +104,12 @@ class ChangeReviewer:
         patch: Patch,
         issues: list[ReviewIssue],
     ) -> None:
-        if patch.files_changed > self.max_files:
+        if patch.files_changed > self.config.max_files:
             issues.append(
                 ReviewIssue(
                     message=(
                         f"Patch changes {patch.files_changed} files, "
-                        f"exceeding the limit of {self.max_files}."
+                        f"exceeding the limit of {self.config.max_files}."
                     ),
                 )
             )
@@ -185,13 +181,13 @@ class ChangeReviewer:
             if change.new_content:
                 total_size += len(change.new_content.encode("utf-8"))
 
-        if total_size > self.max_change_size:
+        if total_size > self.config.max_change_size:
             issues.append(
                 ReviewIssue(
                     message=(
                         f"Patch content size ({total_size} bytes) "
                         f"exceeds the limit of "
-                        f"{self.max_change_size} bytes."
+                        f"{self.config.max_change_size} bytes."
                     ),
                 )
             )

@@ -1,0 +1,72 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.8, pytest-9.1.1, pluggy-1.6.0 -- /home/rahul/Documents/ai-coding-agent/backend/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/rahul/Documents/ai-coding-agent/backend
+configfile: pyproject.toml
+plugins: asyncio-1.4.0, cov-7.1.0, mock-3.15.1, Faker-40.31.0, anyio-4.14.1, langsmith-0.12.2
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 55 items
+
+tests/api/test_agent.py::test_agent_task_success PASSED                  [  1%]
+tests/api/test_agent.py::test_agent_task_without_token PASSED            [  3%]
+tests/api/test_agent.py::test_agent_task_forbidden_for_other_users_repository PASSED [  5%]
+tests/api/test_chat.py::test_create_chat_success PASSED                  [  7%]
+tests/api/test_chat.py::test_create_chat_without_authentication PASSED   [  9%]
+tests/api/test_chat.py::test_get_chat_success PASSED                     [ 10%]
+tests/api/test_chat.py::test_get_chat_not_found PASSED                   [ 12%]
+tests/api/test_chat.py::test_get_chat_without_authentication PASSED      [ 14%]
+tests/api/test_chat.py::test_get_chat_forbidden_for_another_user PASSED  [ 16%]
+tests/api/test_chat.py::test_list_messages_success PASSED                [ 18%]
+tests/api/test_chat.py::test_list_messages_empty PASSED                  [ 20%]
+tests/api/test_chat.py::test_list_messages_forbidden_for_another_user PASSED [ 21%]
+tests/api/test_chat.py::test_list_messages_without_authentication PASSED [ 23%]
+tests/api/test_chat.py::test_list_repository_chats_success PASSED        [ 25%]
+tests/api/test_chat.py::test_list_repository_chats_empty PASSED          [ 27%]
+tests/api/test_chat.py::test_list_repository_chats_without_authentication PASSED [ 29%]
+tests/api/test_project.py::test_create_project PASSED                    [ 30%]
+tests/api/test_project.py::test_create_project_without_authentication PASSED [ 32%]
+tests/api/test_project.py::test_create_project_workspace_not_found PASSED [ 34%]
+tests/api/test_project.py::test_create_duplicate_project PASSED          [ 36%]
+tests/api/test_project.py::test_get_project PASSED                       [ 38%]
+tests/api/test_project.py::test_get_project_not_found PASSED             [ 40%]
+tests/api/test_project.py::test_get_project_from_another_user PASSED     [ 41%]
+tests/api/test_project.py::test_list_projects PASSED                     [ 43%]
+tests/api/test_project.py::test_list_projects_workspace_not_found PASSED [ 45%]
+tests/api/test_project.py::test_update_project PASSED                    [ 47%]
+tests/api/test_project.py::test_update_project_duplicate_name PASSED     [ 49%]
+tests/api/test_project.py::test_delete_project PASSED                    [ 50%]
+tests/api/test_project.py::test_delete_project_not_found PASSED          [ 52%]
+tests/api/test_repository.py::test_import_github_repository PASSED       [ 54%]
+tests/api/test_repository.py::test_import_github_repository_without_authentication PASSED [ 56%]
+tests/api/test_repository.py::test_import_github_repository_project_not_found PASSED [ 58%]
+tests/api/test_repository.py::test_import_duplicate_github_repository PASSED [ 60%]
+tests/api/test_repository.py::test_upload_repository_without_authentication PASSED [ 61%]
+tests/api/test_repository.py::test_upload_repository_project_not_found PASSED [ 63%]
+tests/api/test_repository.py::test_upload_duplicate_repository PASSED    [ 65%]
+tests/api/test_repository.py::test_get_repository PASSED                 [ 67%]
+tests/api/test_repository.py::test_get_repository_not_found PASSED       [ 69%]
+tests/api/test_repository.py::test_get_repository_from_another_user PASSED [ 70%]
+tests/api/test_repository.py::test_list_project_repositories PASSED      [ 72%]
+tests/api/test_repository.py::test_list_project_repositories_project_not_found PASSED [ 74%]
+tests/api/test_repository.py::test_delete_repository PASSED              [ 76%]
+tests/api/test_repository.py::test_delete_repository_not_found PASSED    [ 78%]
+tests/api/test_workspace.py::test_create_workspace PASSED                [ 80%]
+tests/api/test_workspace.py::test_create_workspace_without_authentication PASSED [ 81%]
+tests/api/test_workspace.py::test_create_duplicate_workspace PASSED      [ 83%]
+tests/api/test_workspace.py::test_get_workspace PASSED                   [ 85%]
+tests/api/test_workspace.py::test_get_workspace_not_found PASSED         [ 87%]
+tests/api/test_workspace.py::test_get_workspace_from_another_user PASSED [ 89%]
+tests/api/test_workspace.py::test_list_workspaces PASSED                 [ 90%]
+tests/api/test_workspace.py::test_list_workspaces_does_not_return_other_users PASSED [ 92%]
+tests/api/test_workspace.py::test_update_workspace PASSED                [ 94%]
+tests/api/test_workspace.py::test_update_workspace_duplicate_name PASSED [ 96%]
+tests/api/test_workspace.py::test_delete_workspace PASSED                [ 98%]
+tests/api/test_workspace.py::test_delete_workspace_not_found PASSED      [100%]
+
+=============================== warnings summary ===============================
+tests/api/test_chat.py::test_create_chat_success
+  /home/rahul/Documents/ai-coding-agent/backend/.venv/lib/python3.14/site-packages/qdrant_client/qdrant_remote.py:290: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
+    show_warning(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=================== 55 passed, 1 warning in 90.84s (0:01:30) ===================
